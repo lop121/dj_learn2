@@ -1,52 +1,50 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render
-from django.template.context_processors import request
-from django.template.defaultfilters import slugify
-from django.template.loader import render_to_string
 
-menu = ['About page', 'Add article', 'Back contact', 'Log In']
+menu = [
+    {'title': 'About page', 'url_name': 'about'},
+    {'title': 'Add article', 'url_name': 'add_model'},
+    {'title': 'Feedback', 'url_name': 'contact'},
+    {'title': 'Log In', 'url_name': 'login'},
+]
 
-
-class MyClass:
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+data_db = [
+    {'id': 1, 'title': 'Toyota',
+     'content': '''Выпускается с 1982 года  по настоящее время.
+     Сборка осуществляется в Японии, США, Австралии (до 2017 года), России (до 2022 года) и Китае.Тип кузова — 4‑дверный седан (5‑местный). 
+     Компоновка — FWD, AWD (для США). Двигатель — ДВС, гибрид. Трансмиссия — АКПП, МКПП.'''},
+    {'id': 2, 'title': 'Mazda', 'content': 2010},
+    {'id': 3, 'title': 'Nissan', 'content': 2008},
+]
 
 
 def index(request):
-    # t = render_to_string('cars/index.html')
-    # return HttpResponse(t)
     data = {
-        'title': 'homePage',
+        'title': 'HomePage',
         'menu': menu,
-        'float': 7.10,
-        'lst': [1, 2, 'abc', True],
-        'set': {1, 2, 4, 5},
-        'dict': {'key_1': 'value_1'},
-        'obj': MyClass(1, 2),
-        'tire': slugify('The Title Text')
+        'cars': data_db,
     }
     return render(request, 'cars/index.html', context=data)
 
 
 def about(request):
-    return render(request, 'cars/about.html', {'title': 'About page'})
+    return render(request, 'cars/about.html', {'title': 'About page', 'menu': menu})
 
 
-def brand(request, brand_id):
-    return HttpResponse(f'<h1>Марки машин<h1/> <p> id: {brand_id}</p>')
+def show_model(request, model_id):
+    return HttpResponse(f'Car model with id: {model_id}')
 
 
-def brand_by_slug(request, brand_slug):
-    if request.POST:
-        print(request.POST)
-    return HttpResponse(f'<h1>Марки машин<h1/> <p>Название: {brand_slug}</p>')
+def add_model(request):
+    return HttpResponse('Add model')
 
 
-def archive(request, year):
-    if year > 2025:
-        return redirect('home')
-    return HttpResponse(f'<h1>Архив машин<h1/> <p>Год: {year}</p>')
+def contact(request):
+    return HttpResponse('Feedback')
+
+
+def login(request):
+    return HttpResponse('Log In')
 
 
 def page_not_found(request, exception):
