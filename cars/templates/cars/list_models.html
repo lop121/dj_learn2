@@ -1,0 +1,7 @@
+{% for mod in modeli %}
+{% if mod.id == model_selected %}
+<li class="selected">{{mod.model}}</li>
+{% else %}
+<li><a href="{% url 'model' mod.id %}">{{ mod.model }}</a></li>
+{% endif %}
+{% endfor %}

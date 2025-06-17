@@ -1,4 +1,5 @@
 {% load static %}
+{% load cars_tags %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,10 +31,19 @@
 <!-- Sidebar слева -->
 	<td valign="top" class="left-chapters">
 	<ul id="leftchapters">
+		{% if mod_selected == 0 or mod_selected is None %}
 		<li class="selected">All functions</li>
+		{% else %}
+		<li><a href="{% url 'home' %}">All functions</a></li>
+		{% endif %}
 		<li><a href="#">Search</a></li>
 		<li><a href="#">Filter</a></li>
-		<li><a href="#">Contact with operator</a></li>
+		<li><a href="#">Models:</a></li>
+
+		<ul>
+  		{% show_models mod_selected %}
+		</ul>
+
 		<li class="share">
 		<p>Наш канал</p>
 		<a class="share-yt" href="https://t.me/meowxowI" target="_blank" rel="nofollow"></a>
