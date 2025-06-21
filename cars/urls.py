@@ -11,7 +11,7 @@ urlpatterns = [
     path('add_model/', views.add_model, name='add_model'),
     path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
-    path('post/<int:post_id>/', views.show_post, name='post'),
+    path('post/<slug:post_slug>/', views.show_post, name='post'),
     path('model/<int:model_id>/', views.show_model, name='model'),
 
 ]

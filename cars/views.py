@@ -1,5 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
+
+from .models import Cars
 
 menu = [
     {'title': 'About page', 'url_name': 'about'},
@@ -25,10 +27,11 @@ models_db = [
 
 
 def index(request):
+    posts = Cars.objects.filter(is_published=1)
     data = {
         'title': 'HomePage',
         'menu': menu,
-        'cars': data_db,
+        'cars': posts,
         'mod_selected': 0,
     }
     return render(request, 'cars/index.html', context=data)
@@ -38,8 +41,17 @@ def about(request):
     return render(request, 'cars/about.html', {'title': 'About page', 'menu': menu})
 
 
-def show_post(request, post_id):
-    return HttpResponse(f'Car model with id: {post_id}')
+def show_post(request, post_slug):
+    post = get_object_or_404(Cars, slug=post_slug)
+
+    data = {
+        'name': post.name,
+        'menu': menu,
+        'post': post,
+        'mod_selected': 1,
+    }
+
+    return render(request, 'cars/post.html', data)
 
 
 def add_model(request):

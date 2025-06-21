@@ -2,12 +2,12 @@
 {% block content %}
 <ul class="list-articles">
     {% for c in cars %}
-    <li><h2>{{c.title}}</h2>
+    <li><h2>{{c.name}}</h2>
         {% autoescape off %}
-        {{c.content|linebreaks|truncatewords:40}}
+        {{c.year|linebreaks|truncatewords:40}}
         {% endautoescape %}
         <div class="clear"></div>
-        <p class="link-read-post"><a href="{% url 'model' c.id %}">Read more</a></p>
+        <p class="link-read-post"><a href="{{ c.get_absolute_url }}">Read more</a></p>
     </li>
     {% endfor %}
 </ul>
