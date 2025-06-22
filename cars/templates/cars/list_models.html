@@ -1,7 +1,7 @@
-{% for mod in modeli %}
-{% if mod.id == model_selected %}
-<li class="selected">{{mod.model}}</li>
+{% for con in countries %}
+{% if con.id == country_selected %}
+<li class="selected">{{ con.name }}</li>
 {% else %}
-<li><a href="{% url 'model' mod.id %}">{{ mod.model }}</a></li>
+<li><a href="{{ con.get_absolute_url }}">{{ con.name }}</a></li>
 {% endif %}
 {% endfor %}

@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
 
-from .models import Cars
+from .models import Cars, Category
 
 menu = [
     {'title': 'About page', 'url_name': 'about'},
@@ -10,29 +10,14 @@ menu = [
     {'title': 'Log In', 'url_name': 'login'},
 ]
 
-data_db = [
-    {'id': 1, 'title': 'Toyota',
-     'content': '''Выпускается с 1982 года  по настоящее время.
-     Сборка осуществляется в Японии, США, Австралии (до 2017 года), России (до 2022 года) и Китае.Тип кузова — 4‑дверный седан (5‑местный). 
-     Компоновка — FWD, AWD (для США). Двигатель — ДВС, гибрид. Трансмиссия — АКПП, МКПП.'''},
-    {'id': 2, 'title': 'Mazda', 'content': 2010},
-    {'id': 3, 'title': 'Nissan', 'content': 2008},
-]
-
-models_db = [
-    {'id': 1, 'model': 'Toyota'},
-    {'id': 2, 'model': 'Mazda'},
-    {'id': 3, 'model': 'Nissan'},
-]
-
 
 def index(request):
-    posts = Cars.objects.filter(is_published=1)
+    posts = Cars.published.all()
     data = {
         'title': 'HomePage',
         'menu': menu,
         'cars': posts,
-        'mod_selected': 0,
+        'country_selected': 0,
     }
     return render(request, 'cars/index.html', context=data)
 
@@ -48,7 +33,7 @@ def show_post(request, post_slug):
         'name': post.name,
         'menu': menu,
         'post': post,
-        'mod_selected': 1,
+        'country_selected': 1,
     }
 
     return render(request, 'cars/post.html', data)
@@ -70,11 +55,13 @@ def page_not_found(request, exception):
     return HttpResponseNotFound('<h1>Страница не найдена</h1>')
 
 
-def show_model(request, model_id):
+def show_category(request, cat_slug):
+    category = get_object_or_404(Category, slug=cat_slug)
+    posts = Cars.published.filter(cat_id=category.pk)
     data = {
-        'title': 'View Model',
+        'title': f'Country: {category.name}',
         'menu': menu,
-        'cars': data_db,
-        'mod_selected': model_id,
+        'cars': posts,
+        'country_selected': category.pk,
     }
     return render(request, 'cars/index.html', context=data)

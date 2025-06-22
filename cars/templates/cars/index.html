@@ -2,7 +2,12 @@
 {% block content %}
 <ul class="list-articles">
     {% for c in cars %}
-    <li><h2>{{c.name}}</h2>
+    <li>
+        <div class="article-panel">
+            <p class="first">Country of manufacture: {{ c.cat.name }}</p>
+            <p class="last">Time last update: {{c.time_update|date:"d-m-Y H:i:s"}}</p>
+        </div>
+        <h2>{{c.name}}</h2>
         {% autoescape off %}
         {{c.year|linebreaks|truncatewords:40}}
         {% endautoescape %}

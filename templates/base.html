@@ -31,14 +31,13 @@
 <!-- Sidebar слева -->
 	<td valign="top" class="left-chapters">
 	<ul id="leftchapters">
-		{% if mod_selected == 0 or mod_selected is None %}
-		<li class="selected">All functions</li>
+		{% if country_selected == 0 or country_selected is None %}
+		<li class="selected">All countries</li>
 		{% else %}
-		<li><a href="{% url 'home' %}">All models</a></li>
+		<li><a href="{% url 'home' %}">All countries</a></li>
 		{% endif %}
-		<li><a href="#">Search</a></li>
-		<li><a href="#">Filter</a></li>
 
+		{% show_countries country_selected %}
 
 		<li class="share">
 		<p>Наш канал</p>
