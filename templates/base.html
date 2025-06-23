@@ -31,7 +31,7 @@
 <!-- Sidebar слева -->
 	<td valign="top" class="left-chapters">
 	<ul id="leftchapters">
-		{% if country_selected == 0 or country_selected is None %}
+		{% if country_selected == 0 %}
 		<li class="selected">All countries</li>
 		{% else %}
 		<li><a href="{% url 'home' %}">All countries</a></li>
@@ -43,6 +43,8 @@
 		<p>Наш канал</p>
 		<a class="share-yt" href="https://t.me/meowxowI" target="_blank" rel="nofollow"></a>
 		</li>
+
+		<li> {% show_all_tags %}</li>
 	</ul>
 </td>
 <!-- Конец Sidebar'а -->

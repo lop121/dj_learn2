@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
 
-from .models import Cars, Category
+from .models import Cars, Category, TagPost
 
 menu = [
     {'title': 'About page', 'url_name': 'about'},
@@ -64,4 +64,18 @@ def show_category(request, cat_slug):
         'cars': posts,
         'country_selected': category.pk,
     }
+    return render(request, 'cars/index.html', context=data)
+
+
+def show_tag_postlist(request, tag_slug):
+    tag = get_object_or_404(TagPost, slug=tag_slug)
+    posts = tag.tags.filter(is_published=Cars.Status.PUBLISHED)
+
+    data = {
+        'title': f'Tag: {tag.tag}',
+        'menu': menu,
+        'cars': posts,
+        'country_selected': None,
+    }
+
     return render(request, 'cars/index.html', context=data)
