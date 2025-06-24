@@ -1,11 +1,13 @@
+from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
 
-from .models import Cars, Category, TagPost
+from .forms import AddCarForm
+from .models import Cars, Category, TagPost, VinNumber
 
 menu = [
     {'title': 'About page', 'url_name': 'about'},
-    {'title': 'Add article', 'url_name': 'add_model'},
+    {'title': 'Add a new car', 'url_name': 'add_car'},
     {'title': 'Feedback', 'url_name': 'contact'},
     {'title': 'Log In', 'url_name': 'login'},
 ]
@@ -39,8 +41,24 @@ def show_post(request, post_slug):
     return render(request, 'cars/post.html', data)
 
 
-def add_model(request):
-    return HttpResponse('Add model')
+def add_car(request):
+    if request.method == 'POST':
+        form = AddCarForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            try:
+                Cars.objects.create(**form.cleaned_data)
+                return redirect('home')
+            except Exception as e:
+                form.add_error(None, f'Error: {e}')
+    else:
+        form = AddCarForm()
+    data = {
+        'menu': menu,
+        'title': 'Add new car',
+        'form': form
+    }
+    return render(request, 'cars/addcar.html', context=data)
 
 
 def contact(request):

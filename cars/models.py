@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.urls import reverse
 
 
@@ -20,7 +21,7 @@ class Cars(models.Model):
     time_update = models.DateTimeField(auto_now=True)
     is_published = (models.BooleanField(choices=tuple(map(lambda x: (bool(x[0]), x[1]), Status.choices)),
                                         default=Status.DRAFT))
-    cat = models.ForeignKey('Category', on_delete=models.PROTECT, related_name='posts')
+    cat = models.ForeignKey('Category', on_delete=models.PROTECT, related_name='posts', verbose_name='Country')
     tags = models.ManyToManyField('TagPost', blank=True, related_name='tags')
     vin = models.OneToOneField('VinNumber', on_delete=models.PROTECT, null=True, blank=True, related_name='car')
 
@@ -39,6 +40,10 @@ class Cars(models.Model):
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_slug': self.slug})
+
+    # def save(self, *args, **kwargs):
+    #     self.slug = slugify(self.name)
+    #     super().save(*args, **kwargs)
 
 
 class Category(models.Model):

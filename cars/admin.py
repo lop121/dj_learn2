@@ -7,6 +7,10 @@ from cars.models import Cars, Category
 
 @admin.register(Cars)
 class CarsAdmin(admin.ModelAdmin):
+    fields = ['name', 'slug', 'year', 'cat', 'tags']
+    exclude = ['is_published']
+    # readonly_fields = ['slug']
+    prepopulated_fields = {'slug': ('name',)}
     list_display = ('name', 'time_create', 'is_published', 'brief_info')
     list_display_links = ('name',)
     ordering = ['time_create', 'name']
