@@ -12,7 +12,7 @@ menu = [
 
 
 def index(request):
-    posts = Cars.published.all()
+    posts = Cars.published.all().select_related('cat')
     data = {
         'title': 'HomePage',
         'menu': menu,
@@ -57,7 +57,7 @@ def page_not_found(request, exception):
 
 def show_category(request, cat_slug):
     category = get_object_or_404(Category, slug=cat_slug)
-    posts = Cars.published.filter(cat_id=category.pk)
+    posts = Cars.published.filter(cat_id=category.pk).select_related('cat')
     data = {
         'title': f'Country: {category.name}',
         'menu': menu,
@@ -69,7 +69,7 @@ def show_category(request, cat_slug):
 
 def show_tag_postlist(request, tag_slug):
     tag = get_object_or_404(TagPost, slug=tag_slug)
-    posts = tag.tags.filter(is_published=Cars.Status.PUBLISHED)
+    posts = tag.tags.filter(is_published=Cars.Status.PUBLISHED).select_related('cat')
 
     data = {
         'title': f'Tag: {tag.tag}',
