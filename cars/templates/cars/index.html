@@ -7,6 +7,9 @@
             <p class="first">Country of manufacture: {{ c.cat.name }}</p>
             <p class="last">Time last update: {{c.time_update|date:"d-m-Y H:i:s"}}</p>
         </div>
+        {% if c.photo %}
+        <p><img class="img-article-left thumb" src="{{ c.photo.url }}"></p>
+        {% endif %}
         <h2>{{c.name}}</h2>
         {% autoescape off %}
         {{c.year|linebreaks|truncatewords:40}}
