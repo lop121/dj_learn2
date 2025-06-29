@@ -1,9 +1,14 @@
+from audioop import reverse
+
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, DetailView, FormView, CreateView, UpdateView, DeleteView
+from dns.update import Update
 from unicodedata import category
+from wheel.cli import tags_f
 
 from .forms import AddCarForm, UploadFileForm
 from .models import Cars, Category, TagPost, VinNumber, UploadFiles
@@ -14,17 +19,6 @@ menu = [
     {'title': 'Feedback', 'url_name': 'contact'},
     {'title': 'Log In', 'url_name': 'login'},
 ]
-
-
-# def index(request):
-#     posts = Cars.published.all().select_related('cat')
-#     data = {
-#         'title': 'HomePage',
-#         'menu': menu,
-#         'cars': posts,
-#         'country_selected': 0,
-#     }
-#     return render(request, 'cars/index.html', context=data)
 
 
 class CarsHome(ListView):
@@ -41,14 +35,6 @@ class CarsHome(ListView):
     def get_queryset(self):
         return Cars.published.all().select_related('cat')
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['title'] = 'HomePage'
-    #     context['menu'] = menu
-    #     context['cars'] = Cars.published.all().select_related('cat')
-    #     context['country_selected'] = int(self.request.GET.get('cat_id', 0))
-    #     return context
-
 
 def about(request):
     if request.method == 'POST':
@@ -61,63 +47,80 @@ def about(request):
     return render(request, 'cars/about.html', {'title': 'About page', 'menu': menu, 'form': form})
 
 
-def show_post(request, post_slug):
-    post = get_object_or_404(Cars, slug=post_slug)
+class ShowPost(DetailView):
+    model = Cars
+    template_name = 'cars/post.html'
+    slug_url_kwarg = 'post_slug'
+    context_object_name = 'post'
 
-    data = {
-        'name': post.name,
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = context['post'].name
+        context['menu'] = menu
+        return context
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Cars.published, slug=self.kwargs[self.slug_url_kwarg])
+
+
+class AddCar(CreateView):
+    form_class = AddCarForm
+    template_name = 'cars/addcar.html'
+    # success_url = reverse_lazy('home')
+
+    extra_context = {
         'menu': menu,
-        'post': post,
-        'country_selected': 1,
+        'title': 'Add a new car',
     }
 
-    return render(request, 'cars/post.html', data)
+
+class UpdateCar(UpdateView):
+    model = Cars
+    fields = ['name', 'year', 'photo', 'is_published', 'cat']
+    template_name = 'cars/addcar.html'
+    success_url = reverse_lazy('home')
+
+    extra_context = {
+        'menu': menu,
+        'title': 'Edit car',
+    }
 
 
-# def add_car(request):
-#     if request.method == 'POST':
-#         form = AddCarForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             # try:
-#             #     Cars.objects.create(**form.cleaned_data)
-#             #     return redirect('home')
-#             # except Exception as e:
-#             #     form.add_error(None, f'Error: {e}')
-#             form.save()
-#             return redirect('home')
-#     else:
+class DeleteCar(DeleteView):
+    model = Cars
+    template_name = 'cars/car_confirm_delete.html'
+    context_object_name = 'car'
+    success_url = reverse_lazy('home')
+
+    extra_context = {
+        'menu': menu,
+        'title': 'Delete car',
+    }
+
+
+# class AddCar(View):
+#     def get(self, request):
 #         form = AddCarForm()
-#     data = {
-#         'menu': menu,
-#         'title': 'Add new car',
-#         'form': form
-#     }
-#     return render(request, 'cars/addcar.html', context=data)
-
-
-class AddCar(View):
-    def get(self, request):
-        form = AddCarForm()
-        data = {
-            'menu': menu,
-            'title': 'Add new car',
-            'form': form
-        }
-        return render(request, 'cars/addcar.html', context=data)
-
-    def post(self, request):
-        if request.method == 'POST':
-            form = AddCarForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.save()
-                return redirect('home')
-
-        data = {
-            'menu': menu,
-            'title': 'Add new car',
-            'form': form
-        }
-        return render(request, 'cars/addcar.html', context=data)
+#         data = {
+#             'menu': menu,
+#             'title': 'Add new car',
+#             'form': form
+#         }
+#         return render(request, 'cars/addcar.html', context=data)
+#
+#     def post(self, request):
+#         if request.method == 'POST':
+#             form = AddCarForm(request.POST, request.FILES)
+#             if form.is_valid():
+#                 form.save()
+#                 return redirect('home')
+#
+#         data = {
+#             'menu': menu,
+#             'title': 'Add new car',
+#             'form': form
+#         }
+#         return render(request, 'cars/addcar.html', context=data)
 
 
 def contact(request):
@@ -161,15 +164,18 @@ class CarsCategory(ListView):
         return context
 
 
-def show_tag_postlist(request, tag_slug):
-    tag = get_object_or_404(TagPost, slug=tag_slug)
-    posts = tag.tags.filter(is_published=Cars.Status.PUBLISHED).select_related('cat')
+class TagPostList(ListView):
+    template_name = 'cars/index.html'
+    context_object_name = 'cars'
+    allow_empty = False
 
-    data = {
-        'title': f'Tag: {tag.tag}',
-        'menu': menu,
-        'cars': posts,
-        'country_selected': None,
-    }
+    def get_queryset(self):
+        return Cars.published.filter(tags__slug=self.kwargs['tag_slug']).select_related('cat')
 
-    return render(request, 'cars/index.html', context=data)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag = TagPost.objects.get(slug=self.kwargs['tag_slug'])
+        context['title'] = 'Tag: ' + tag.tag
+        context['menu'] = menu
+        context['country_selected'] = None
+        return context
