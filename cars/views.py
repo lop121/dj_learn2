@@ -1,5 +1,6 @@
 from audioop import reverse
 
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
@@ -12,115 +13,62 @@ from wheel.cli import tags_f
 
 from .forms import AddCarForm, UploadFileForm
 from .models import Cars, Category, TagPost, VinNumber, UploadFiles
-
-menu = [
-    {'title': 'About page', 'url_name': 'about'},
-    {'title': 'Add a new car', 'url_name': 'add_car'},
-    {'title': 'Feedback', 'url_name': 'contact'},
-    {'title': 'Log In', 'url_name': 'login'},
-]
+from .utils import DataMixin
 
 
-class CarsHome(ListView):
-    # model = Cars
+class CarsHome(DataMixin, ListView):
     template_name = 'cars/index.html'
     context_object_name = 'cars'
-
-    extra_context = {
-        'title': 'HomePage',
-        'menu': menu,
-        'country_selected': 0,
-    }
+    title_page = 'HomePage'
+    country_selected = 0
 
     def get_queryset(self):
         return Cars.published.all().select_related('cat')
 
 
 def about(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            fp = UploadFiles(file=form.cleaned_data['file'])
-            fp.save()
-    else:
-        form = UploadFileForm()
-    return render(request, 'cars/about.html', {'title': 'About page', 'menu': menu, 'form': form})
+    contact_list = Cars.published.all()
+    paginator = Paginator(contact_list, 2)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'cars/about.html', {'title': 'About page', 'page_obj': page_obj})
 
 
-class ShowPost(DetailView):
-    model = Cars
+class ShowPost(DataMixin, DetailView):
     template_name = 'cars/post.html'
     slug_url_kwarg = 'post_slug'
     context_object_name = 'post'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = context['post'].name
-        context['menu'] = menu
-        return context
+        return self.get_mixin_context(context, title=context['post'].name)
 
     def get_object(self, queryset=None):
         return get_object_or_404(Cars.published, slug=self.kwargs[self.slug_url_kwarg])
 
 
-class AddCar(CreateView):
+class AddCar(DataMixin, CreateView):
     form_class = AddCarForm
     template_name = 'cars/addcar.html'
-    # success_url = reverse_lazy('home')
-
-    extra_context = {
-        'menu': menu,
-        'title': 'Add a new car',
-    }
+    title_page = 'Add a new car'
 
 
-class UpdateCar(UpdateView):
+class UpdateCar(DataMixin, UpdateView):
     model = Cars
     fields = ['name', 'year', 'photo', 'is_published', 'cat']
     template_name = 'cars/addcar.html'
     success_url = reverse_lazy('home')
-
-    extra_context = {
-        'menu': menu,
-        'title': 'Edit car',
-    }
+    title_page = 'Edit post'
 
 
-class DeleteCar(DeleteView):
+class DeleteCar(DataMixin, DeleteView):
     model = Cars
     template_name = 'cars/car_confirm_delete.html'
     context_object_name = 'car'
     success_url = reverse_lazy('home')
-
-    extra_context = {
-        'menu': menu,
-        'title': 'Delete car',
-    }
-
-
-# class AddCar(View):
-#     def get(self, request):
-#         form = AddCarForm()
-#         data = {
-#             'menu': menu,
-#             'title': 'Add new car',
-#             'form': form
-#         }
-#         return render(request, 'cars/addcar.html', context=data)
-#
-#     def post(self, request):
-#         if request.method == 'POST':
-#             form = AddCarForm(request.POST, request.FILES)
-#             if form.is_valid():
-#                 form.save()
-#                 return redirect('home')
-#
-#         data = {
-#             'menu': menu,
-#             'title': 'Add new car',
-#             'form': form
-#         }
-#         return render(request, 'cars/addcar.html', context=data)
+    title_page = 'Delete car'
 
 
 def contact(request):
@@ -135,19 +83,7 @@ def page_not_found(request, exception):
     return HttpResponseNotFound('<h1>Страница не найдена</h1>')
 
 
-# def show_category(request, cat_slug):
-#     category = get_object_or_404(Category, slug=cat_slug)
-#     posts = Cars.published.filter(cat_id=category.pk).select_related('cat')
-#     data = {
-#         'title': f'Country: {category.name}',
-#         'menu': menu,
-#         'cars': posts,
-#         'country_selected': category.pk,
-#     }
-#     return render(request, 'cars/index.html', context=data)
-
-
-class CarsCategory(ListView):
+class CarsCategory(DataMixin, ListView):
     template_name = 'cars/index.html'
     context_object_name = 'cars'
     allow_empty = False
@@ -158,13 +94,12 @@ class CarsCategory(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cat = context['cars'][0].cat
-        context['title'] = 'Country - ' + cat.name
-        context['menu'] = menu
-        context['country_selected'] = cat.pk
-        return context
+        return self.get_mixin_context(context, title='Country - ' + cat.name,
+                                      country_selected=cat.pk,
+                                      )
 
 
-class TagPostList(ListView):
+class TagPostList(DataMixin, ListView):
     template_name = 'cars/index.html'
     context_object_name = 'cars'
     allow_empty = False
@@ -175,7 +110,6 @@ class TagPostList(ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         tag = TagPost.objects.get(slug=self.kwargs['tag_slug'])
-        context['title'] = 'Tag: ' + tag.tag
-        context['menu'] = menu
-        context['country_selected'] = None
-        return context
+        return self.get_mixin_context(context,
+                                      title='Tag: ' + tag.tag,
+                                      )
