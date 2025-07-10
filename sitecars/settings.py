@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
-from django.conf.global_settings import STATICFILES_DIRS, MEDIA_ROOT, MEDIA_URL
+from django.conf.global_settings import STATICFILES_DIRS, MEDIA_ROOT, MEDIA_URL, LOGIN_REDIRECT_URL
 from django.template.context_processors import media
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -134,3 +134,6 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
