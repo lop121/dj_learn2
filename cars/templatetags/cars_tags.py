@@ -3,8 +3,14 @@ from django.db.models import Count
 
 import cars.views as views
 from cars.models import Category, TagPost
+from cars.utils import menu
 
 register = template.Library()
+
+
+@register.simple_tag
+def get_menu():
+    return menu
 
 
 @register.inclusion_tag('cars/list_models.html')
