@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 from django.conf.global_settings import STATICFILES_DIRS, MEDIA_ROOT, MEDIA_URL, LOGIN_REDIRECT_URL, LOGIN_URL, \
-    AUTHENTICATION_BACKENDS
+    AUTHENTICATION_BACKENDS, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_USE_LOCALTIME, EMAIL_USE_SSL, DEFAULT_FROM_EMAIL, \
+    SERVER_EMAIL
 from django.template.context_processors import media
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -144,3 +145,15 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     'users.authentication.EmailAuthBackend'
 ]
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'djangolearning@yandex.ru'
+EMAIL_HOST_PASSWORD = 'bonvykgemovwpyeb'
+EMAIL_USE_SSL = True
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
