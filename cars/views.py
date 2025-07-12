@@ -1,7 +1,10 @@
 from audioop import reverse
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import IntegrityError
+from django.db.transaction import commit
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
@@ -26,6 +29,7 @@ class CarsHome(DataMixin, ListView):
         return Cars.published.all().select_related('cat')
 
 
+@login_required
 def about(request):
     contact_list = Cars.published.all()
     paginator = Paginator(contact_list, 2)
@@ -49,10 +53,15 @@ class ShowPost(DataMixin, DetailView):
         return get_object_or_404(Cars.published, slug=self.kwargs[self.slug_url_kwarg])
 
 
-class AddCar(DataMixin, CreateView):
+class AddCar(LoginRequiredMixin, DataMixin, CreateView):
     form_class = AddCarForm
     template_name = 'cars/addcar.html'
     title_page = 'Add a new car'
+
+    def form_valid(self, form):
+        c = form.save(commit=False)
+        c.author = self.request.user
+        return super().form_valid(form)
 
 
 class UpdateCar(DataMixin, UpdateView):

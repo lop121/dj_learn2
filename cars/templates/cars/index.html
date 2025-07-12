@@ -4,7 +4,8 @@
     {% for c in cars %}
     <li>
         <div class="article-panel">
-            <p class="first">Country of manufacture: {{ c.cat.name }}</p>
+            <p class="first">Country of manufacture: {{ c.cat.name }} |
+                Author: {{c.author.username|default:'No name'}}</p>
             <p class="last">Time last update: {{c.time_update|date:"d-m-Y H:i:s"}}</p>
         </div>
         {% if c.photo %}
